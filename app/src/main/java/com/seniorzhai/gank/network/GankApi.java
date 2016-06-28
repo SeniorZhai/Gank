@@ -3,6 +3,7 @@ package com.seniorzhai.gank.network;
 import com.seniorzhai.gank.model.BenefitModel;
 
 import okhttp3.OkHttpClient;
+import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.CallAdapter;
 import retrofit2.Converter;
 import retrofit2.Retrofit;
@@ -15,15 +16,20 @@ import rx.Observable;
  */
 public class GankApi {
 
-    private static OkHttpClient okHttpClient = new OkHttpClient();
     private static Converter.Factory gsonConverterFactory = GsonConverterFactory.create();
     private static CallAdapter.Factory rxJavaCallAdapterFactory = RxJavaCallAdapterFactory.create();
 
     private IGankApi mApi;
 
     public GankApi() {
+        OkHttpClient.Builder okBuilder = new OkHttpClient.Builder();
+        if (false) {
+            HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
+            loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
+            okBuilder.addNetworkInterceptor(loggingInterceptor);
+        }
         Retrofit retrofit = new Retrofit.Builder()
-                .client(okHttpClient)
+                .client(okBuilder.build())
                 .baseUrl("http://gank.io")
                 .addConverterFactory(gsonConverterFactory)
                 .addCallAdapterFactory(rxJavaCallAdapterFactory)

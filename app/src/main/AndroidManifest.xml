@@ -22,4 +22,8 @@
         </activity>
     </application>
 
+    <meta-data
+        android:name="com.seniorzhai.gank.util.GlideConfiguration"
+        android:value="GlideModule" />
+
 </manifest>

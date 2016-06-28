@@ -7,17 +7,18 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 
 import com.bumptech.glide.Glide;
 import com.seniorzhai.gank.model.BenefitModel;
 import com.seniorzhai.gank.network.GankApi;
 import com.seniorzhai.gank.weiget.OnRcvScrollListener;
+import com.seniorzhai.gank.weiget.RatioImageView;
 import com.seniorzhai.gank.weiget.SpacesItemDecoration;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 import rx.schedulers.Schedulers;
 
@@ -44,8 +45,9 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         mAdapter = new ImageAdapter();
         mRecyclerView.setAdapter(mAdapter);
         mRecyclerView.addItemDecoration(new SpacesItemDecoration(16));
+        mSwipeRefreshLayout.setRefreshing(true);
         refresh();
-        mRecyclerView.setOnScrollListener(new OnRcvScrollListener() {
+        mRecyclerView.addOnScrollListener(new OnRcvScrollListener() {
             @Override
             public void onBottom() {
                 loadMore();
@@ -66,7 +68,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
 
     private void load(int page) {
         isLoad = true;
-        mApi.getBenefit(page).subscribeOn(Schedulers.io()).subscribe(new Action1<BenefitModel>() {
+        mApi.getBenefit(page).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe(new Action1<BenefitModel>() {
             @Override
             public void call(BenefitModel benefitModels) {
                 isLoad = false;
@@ -97,8 +99,12 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         }
 
         @Override
-        public void onBindViewHolder(ImageHolder holder, int position) {
-            Glide.with(holder.itemView.getContext()).load(mData.get(position).url).centerCrop().into(holder.imageView);
+        public void onBindViewHolder(final ImageHolder holder, int position) {
+            Glide.with(holder.itemView.getContext())
+                    .load(mData.get(position).url)
+                    .centerCrop()
+                    .crossFade()
+                    .into(holder.imageView);
         }
 
         @Override
@@ -113,11 +119,12 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
 
         class ImageHolder extends RecyclerView.ViewHolder {
 
-            ImageView imageView;
+            RatioImageView imageView;
 
             ImageHolder(View itemView) {
                 super(itemView);
-                imageView = (ImageView) itemView;
+                imageView = (RatioImageView) itemView;
+                imageView.setOriginalSize(50, 50);
             }
         }
     }
